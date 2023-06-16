@@ -11,9 +11,10 @@ import json
 import tensorflow as tf
 from ecpp_individual_grammar import read_grammar, fixed_lexed_prog, get_token_list, get_actual_token_list, repair_prog
 from predict_eccp_classifier_partials import predict_error_rules
-from src.seq2parse import repair
+from seq2parse import repair
 
 app = Flask(__name__)
+
 
 @app.route('/api/text', methods=['GET'])
 def get_text():
@@ -29,6 +30,7 @@ def get_text():
     max_cost = 5
     environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     input_prog = decoded_url
+    print(input_prog)
     # print('*' * 42)
     # print(input_prog)
     # print('*' * 42)
@@ -39,13 +41,18 @@ def get_text():
     error_rules = predict_error_rules(grammarFile, modelsDir, gpuToUse, input_prog, True)
     actual_tokens = get_actual_token_list(input_prog, terminals)
 
-    repaired_prog = repair(ERROR_GRAMMAR, max_cost, prog_tokens, error_rules, actual_tokens)\
-        .replace('_white_space_', ' ').replace('_NEWLINE_', '\n').replace("\\n", '\n')
+    repaired_prog = repair(ERROR_GRAMMAR, max_cost, prog_tokens, error_rules, actual_tokens)
+    if repaired_prog is not None:
+        repaired_prog = repaired_prog.replace('_white_space_', ' ').replace('_NEWLINE_', '\n').replace("\\n", '\n')
+    else:
+        repaired_prog = input_prog
 
     # Here, you can implement code to retrieve the text from the provided URL
     # and process it as needed. For simplicity, we'll just return the decoded URL.
 
-    return repaired_prog[:-3]
+    fix = repaired_prog[:-3]
+    print(fix)
+    return fix
 
 
 if __name__ == '__main__':
