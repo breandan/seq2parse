@@ -1,24 +1,20 @@
 import sys
 from os import environ
 from os.path import join, exists
-import itertools
 from collections import defaultdict
 import json
 import pickle
-from platform import release
 from functools import partial
 from pathlib import Path
 from tensorflow import keras
 import tensorflow as tf
 from random import shuffle, seed
 from sklearn.preprocessing import MultiLabelBinarizer
-from statistics import median_high, mean
+from statistics import median_high
 from numpy import argsort, array
 from concurrent.futures import TimeoutError
-from pebble import ProcessPool, ProcessExpired
 from transformer_classifier import TransformerClassifier
-from run_parse_test_time import print_results, rate, has_parse
-from ecpp_individual_grammar import read_grammar, lexed_prog_has_parse, get_token_list
+from ecpp_individual_grammar import read_grammar, get_token_list
 import earleyparser_interm_repr
 
 
@@ -92,6 +88,7 @@ def predict_error_rules(grammarFile, modelsDir, gpuToUse, input_prog, sfile, do_
         for i in argsort(yy)[::-1][:num_preds]:
             top_preds[i] = 1
         top_preds = list(mlb.inverse_transform(array(top_preds).reshape(1, num_of_labels))[0])
+        print("top_preds: ", top_preds)
         return list(map(lambda r: reverse_labels[r], top_preds))
 
     xs_test = keras.preprocessing.sequence.pad_sequences(xs_test, maxlen=x_maxlen)
@@ -107,7 +104,7 @@ def predict_error_rules(grammarFile, modelsDir, gpuToUse, input_prog, sfile, do_
 
             transformerClfr = TransformerClassifier(embed_dim, num_heads, ff_dim, transformer_blks, dense_dims, vocab_size, x_maxlen, num_of_labels, 'sigmoid')
 
-            transformerClfr.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001, beta_2=0.98),
+            transformerClfr.compile(optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=0.0001, beta_2=0.98),
                                     loss="binary_crossentropy",
                                     metrics=[keras.metrics.CategoricalAccuracy(name="acc"),
                                             keras.metrics.TopKCategoricalAccuracy(10, name="top-10-acc")])
@@ -117,6 +114,7 @@ def predict_error_rules(grammarFile, modelsDir, gpuToUse, input_prog, sfile, do_
             else:
                 sys.exit(-1)
             y_pred = transformerClfr.predict(xs_test)
+            print("y_pred", y_pred)
             if sfile:
                 return labelize(y_pred[0], max_erules)
             elif do_sfile:
@@ -183,7 +181,11 @@ if __name__ == "__main__":
         avg_num_of_preds = 0
         all_best_preds_lens = []
         for y_pred, y_true, popular in zip(predict_error_rules(grammarFile, modelsDir, gpuToUse, xs_test, False), ys_test, popularities):
+            print("y_pred", y_pred)
+            print("y_true", y_true)
+
             top_50 = argsort(y_pred)[::-1][:50]
+            print("top_50", top_50)
             top_20 = top_50[:20]
             top_10 = top_20[:10]
             top_50_preds = [0] * num_of_labels
@@ -199,6 +201,7 @@ if __name__ == "__main__":
                 top_10_preds[i] = 1
             top_10_preds = list(mlb.inverse_transform(array(top_10_preds).reshape(1, num_of_labels))[0])
             list_of_erules = list(y_true)
+            print(list_of_erules)
             best = list(map(lambda y_tup: y_tup[0], filter(lambda yy: yy[1] > 0.01, enumerate(y_pred))))
             best_preds = [0] * num_of_labels
             for i in best:

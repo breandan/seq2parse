@@ -123,10 +123,13 @@ def has_parse(egrammar, max_cost, tup):
 
     if bparse:
         tokns_lines = tokns.split('_NEWLINE_')
+        print("tokns_lines: ", len(tokns_lines))
         fixed_orig_lines = orig_fixed_seq.split('_NEWLINE_')
         fixed_seq_lines = fixed_seq.split('_NEWLINE_')
         orig_fixed_lines = return_all_changes(tokns_lines, fixed_orig_lines)
+        # print("tru_fixed_lines", orig_fixed_lines)
         our_fixed_lines = return_all_changes(tokns_lines, fixed_seq_lines)
+        # print("our_fixed_lines", orig_fixed_lines)
         all_correct_lines = all(map(lambda l: l in orig_fixed_lines, our_fixed_lines)) if our_fixed_lines else True
         any_correct_lines = any(map(lambda l: l in orig_fixed_lines, our_fixed_lines)) if our_fixed_lines else True
     dt = user_time - run_time

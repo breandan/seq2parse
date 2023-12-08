@@ -86,6 +86,7 @@ class TransformerClassifier(layers.Layer):
         return self.model.fit(xs, ys, batch_size=batch_size, epochs=epochs, validation_data=valid_data, verbose=verbose)
 
     def predict(self, xs):
+        print("predicting...", xs)
         return self.model.predict(xs)
 
     def save_weights(self, path):

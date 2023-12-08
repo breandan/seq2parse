@@ -1,15 +1,9 @@
-from flask import Flask, request
 import urllib.parse
-import sys
-import re
-from copy import deepcopy
-from os import mkdir, environ
-from os.path import join, exists
-from pathlib import Path
-import difflib as df
-import json
-import tensorflow as tf
-from ecpp_individual_grammar import read_grammar, fixed_lexed_prog, get_token_list, get_actual_token_list, repair_prog
+from os import environ
+
+from flask import Flask, request
+
+from ecpp_individual_grammar import read_grammar, get_token_list, get_actual_token_list
 from predict_eccp_classifier_partials import predict_error_rules
 from seq2parse import repair
 

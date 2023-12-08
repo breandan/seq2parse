@@ -46,6 +46,7 @@ def read_sample(samp):
 if __name__ == "__main__":
     grammarFile = sys.argv[1]
     dataDir = Path(sys.argv[2])
+
     outDir = Path(sys.argv[3])
     gpuToUse = '/device:GPU:' + sys.argv[4]
     if len(sys.argv) > 5:
